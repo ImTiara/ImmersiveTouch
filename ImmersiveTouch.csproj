@@ -71,6 +71,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Hooks.cs" />
     <Compile Include="ImmersiveTouch.cs" />
+    <Compile Include="Manager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
