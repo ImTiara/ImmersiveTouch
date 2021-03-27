@@ -61,6 +61,7 @@ namespace ImmersiveTouch
             if (avatarManager != null && avatarManager.field_Private_VRCPlayer_0.Equals(VRCPlayer.field_Internal_Static_VRCPlayer_0))
             {
                 Animator animator = Manager.GetLocalAvatarObject().GetComponent<Animator>();
+                if (animator == null) return;
 
                 float scale = Vector3.Distance(animator.GetBoneTransform(HumanBodyBones.LeftHand).position, animator.GetBoneTransform(HumanBodyBones.RightHand).position);
                 m_HapticDistance = scale / 785.0f;
