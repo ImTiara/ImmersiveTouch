@@ -93,14 +93,14 @@ namespace ImmersiveTouch
 
             if (instance.Equals(m_LeftWristCollider) && Vector3.Distance(m_PreviousLeftWristPosition, position) > m_HapticDistance)
             {
-                VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_VRCPlayerApi_0.PlayHapticEventInHand(VRC_Pickup.PickupHand.Left, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
+                Manager.GetLocalVRCPlayerApi().PlayHapticEventInHand(VRC_Pickup.PickupHand.Left, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
 
                 m_PreviousLeftWristPosition = position;
             }
 
             if (instance.Equals(m_RightWristCollider) && Vector3.Distance(m_PreviousRightWristPosition, position) > m_HapticDistance)
             {
-                VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_VRCPlayerApi_0.PlayHapticEventInHand(VRC_Pickup.PickupHand.Right, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
+                Manager.GetLocalVRCPlayerApi().PlayHapticEventInHand(VRC_Pickup.PickupHand.Right, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
                 
                 m_PreviousRightWristPosition = position;
             }
@@ -113,10 +113,10 @@ namespace ImmersiveTouch
                 m_LeftWristIntPtr = IntPtr.Zero;
                 m_RightWristIntPtr = IntPtr.Zero;
 
-                GameObject avatarObject = VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_VRCAvatarManager_0.prop_GameObject_0;
+                GameObject avatarObject = Manager.GetLocalAvatarObject();
                 Animator animator = avatarObject.GetComponent<Animator>();
 
-                // TODO Make distance local scale dependent instead of world.
+                // TODO: Make distance local scale dependent instead of world.
                 m_HapticDistance = 0.001f;
 
                 // TODO: Find a better method to do this.
