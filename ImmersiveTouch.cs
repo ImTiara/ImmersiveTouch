@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using VRC.SDKBase;
 
 namespace ImmersiveTouch
 {
@@ -92,30 +93,15 @@ namespace ImmersiveTouch
 
             if (instance.Equals(m_LeftWristCollider) && Vector3.Distance(m_PreviousLeftWristPosition, position) > m_HapticDistance)
             {
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue1, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue3, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue5, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue7, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue9, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue11, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue13, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue15, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue17, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
+                VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_VRCPlayerApi_0.PlayHapticEventInHand(VRC_Pickup.PickupHand.Left, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
 
                 m_PreviousLeftWristPosition = position;
             }
 
             if (instance.Equals(m_RightWristCollider) && Vector3.Distance(m_PreviousRightWristPosition, position) > m_HapticDistance)
             {
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue2, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue4, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue6, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue8, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue10, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue12, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue14, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-                VRCTrackingManager.Method_Public_Static_Void_EnumNPublicSealedva19Unique_Single_Single_Single_0(VRCTracking.EnumNPublicSealedva19Unique.EnumValue16, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
-
+                VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_VRCPlayerApi_0.PlayHapticEventInHand(VRC_Pickup.PickupHand.Right, m_HapticDuration, m_HapticAmplitude, m_HapticFrequency);
+                
                 m_PreviousRightWristPosition = position;
             }
         }
