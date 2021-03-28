@@ -6,7 +6,6 @@ using VRC.SDKBase;
 
 namespace ImmersiveTouch
 {
-
     public static class BuildInfo
     {
         public const string Name = "ImmersiveTouch";
@@ -18,11 +17,10 @@ namespace ImmersiveTouch
 
     public class ImmersiveTouch : MelonMod
     {
-
         private static bool m_Enable;
         private static bool m_IsCapable;
 
-        private static float m_HapticAmplitude = 100.0f;
+        private static float m_HapticAmplitude;
         private static float m_HapticDistance;
 
         private static Vector3 m_PreviousLeftWristPosition;
@@ -34,11 +32,17 @@ namespace ImmersiveTouch
         private static IntPtr m_LeftWristIntPtr;
         private static IntPtr m_RightWristIntPtr;
 
-        public override void OnApplicationStart()
+        private static ColliderPrioritization m_ColliderPrioritization = ColliderPrioritization.Wrist;
+        private static string colliderPrioritization = "Wrist";
+
+        public override void VRChat_OnUiManagerInit()
         {
+            Manager.RegisterUIExpansionKit();
+
             MelonPreferences.CreateCategory(GetType().Name, "Immersive Touch");
             MelonPreferences.CreateEntry(GetType().Name, "Enable", true, "Enable Immersive Touch");
             MelonPreferences.CreateEntry(GetType().Name, "HapticAmplitude", 100.0f, "Haptic Amplitude (%)");
+            MelonPreferences.CreateEntry(GetType().Name, "ColliderPrioritization", colliderPrioritization, "Collider Prioritization");
 
             OnPreferencesSaved();
 
@@ -50,23 +54,45 @@ namespace ImmersiveTouch
             m_Enable = MelonPreferences.GetEntryValue<bool>(GetType().Name, "Enable");
             m_HapticAmplitude = MelonPreferences.GetEntryValue<float>(GetType().Name, "HapticAmplitude") / 100.0f;
 
-            if (m_Enable) TryCapability();
+            colliderPrioritization = MelonPreferences.GetEntryValue<string>(GetType().Name, "ColliderPrioritization");
+            Manager.UIExpansionKit_RegisterSettingAsStringEnum(GetType().Name, "ColliderPrioritization", new[]
+            {
+                ("Wrist", "Wrist (Any hand collider)"),
+                ("Thumb", "Thumb"),
+                ("Index", "Index Finger"),
+                ("Middle", "Middle Finger"),
+                ("Ring", "Ring Finger"),
+                ("Pinky", "Pinky Finger")
+            });
+            Enum.TryParse(colliderPrioritization, out m_ColliderPrioritization);
+            
+            TryCapability();
         }
 
         unsafe public static void OnAvatarChanged(IntPtr instance, IntPtr _, IntPtr __, IntPtr ___)
         {
             Hooks.avatarChangedDelegate(instance, _, __, ___);
 
-            VRCAvatarManager avatarManager = new VRCAvatarManager(instance);
-            if (avatarManager != null && avatarManager.field_Private_VRCPlayer_0.Equals(VRCPlayer.field_Internal_Static_VRCPlayer_0))
+            try
             {
-                Animator animator = Manager.GetLocalAvatarObject().GetComponent<Animator>();
-                if (animator == null) return;
+                VRCAvatarManager avatarManager = new VRCAvatarManager(instance);
+                if (avatarManager != null && avatarManager.field_Private_VRCPlayer_0.Equals(VRCPlayer.field_Internal_Static_VRCPlayer_0))
+                {
+                    GameObject avatarObject = Manager.GetLocalAvatarObject();
+                    if (avatarObject == null) return;
 
-                float scale = Vector3.Distance(animator.GetBoneTransform(HumanBodyBones.LeftHand).position, animator.GetBoneTransform(HumanBodyBones.RightHand).position);
-                m_HapticDistance = scale / 785.0f;
+                    Animator animator = avatarObject.GetComponent<Animator>();
+                    if (animator == null) return;
 
-                TryCapability();
+                    float scale = Vector3.Distance(animator.GetBoneTransform(HumanBodyBones.LeftHand).position, animator.GetBoneTransform(HumanBodyBones.RightHand).position);
+                    m_HapticDistance = scale / 785.0f;
+
+                    TryCapability();
+                }
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error($"Error checking when avatar changed:\n{e}");
             }
         }
 
@@ -116,72 +142,61 @@ namespace ImmersiveTouch
 
         private static void TryCapability()
         {
+            if (!m_Enable || Manager.GetLocalVRCPlayer() == null) return;
+
             try
             {
+                GameObject avatarObject = Manager.GetLocalAvatarObject() ?? null;
+                if (avatarObject == null) NotCapable();
+
+                Animator animator = avatarObject.GetComponent<Animator>();
+                if (animator == null || !animator.isHuman) NotCapable();
+
+                HumanBodyBones leftBoneTarget = HumanBodyBones.LeftHand;
+                HumanBodyBones rightBoneTarget = HumanBodyBones.RightHand;
+
+                switch (m_ColliderPrioritization)
+                {
+                    case ColliderPrioritization.Wrist:
+                        leftBoneTarget = HumanBodyBones.LeftHand;
+                        rightBoneTarget = HumanBodyBones.RightHand;
+                        break;
+                    case ColliderPrioritization.Thumb:
+                        leftBoneTarget = HumanBodyBones.LeftThumbProximal;
+                        rightBoneTarget = HumanBodyBones.RightThumbProximal;
+                        break;
+                    case ColliderPrioritization.Index:
+                        leftBoneTarget = HumanBodyBones.LeftIndexProximal;
+                        rightBoneTarget = HumanBodyBones.RightIndexProximal;
+                        break;
+                    case ColliderPrioritization.Middle:
+                        leftBoneTarget = HumanBodyBones.LeftMiddleProximal;
+                        rightBoneTarget = HumanBodyBones.RightMiddleProximal;
+                        break;
+                    case ColliderPrioritization.Ring:
+                        leftBoneTarget = HumanBodyBones.LeftRingProximal;
+                        rightBoneTarget = HumanBodyBones.RightRingProximal;
+                        break;
+                    case ColliderPrioritization.Pinky:
+                        leftBoneTarget = HumanBodyBones.LeftLittleProximal;
+                        rightBoneTarget = HumanBodyBones.RightLittleProximal;
+                        break;
+                }
+
+                var leftHandColliders = animator.GetDynamicBoneColliders(leftBoneTarget);
+                var rightHandColliders = animator.GetDynamicBoneColliders(rightBoneTarget);
+
+                if (m_ColliderPrioritization != ColliderPrioritization.Wrist && ((leftHandColliders != null && leftHandColliders.Count == 0) || (rightHandColliders != null && rightHandColliders.Count == 0)))
+                {
+                    leftHandColliders = animator.GetDynamicBoneColliders(HumanBodyBones.LeftHand);
+                    rightHandColliders = animator.GetDynamicBoneColliders(HumanBodyBones.RightHand);
+                }
+
+                m_LeftWristCollider = leftHandColliders != null && leftHandColliders.Count != 0 ? leftHandColliders[0] : null;
+                m_RightWristCollider = rightHandColliders != null && rightHandColliders.Count != 0 ? rightHandColliders[0] : null;
+
                 m_LeftWristIntPtr = IntPtr.Zero;
                 m_RightWristIntPtr = IntPtr.Zero;
-
-                Animator animator = Manager.GetLocalAvatarObject().GetComponent<Animator>();
-
-                int leftCount = 6;
-                while(m_LeftWristCollider == null && leftCount >= 0)
-                {
-                    switch(leftCount)
-                    {
-                        case 6:
-                            m_LeftWristCollider = animator.GetBoneTransform(HumanBodyBones.LeftHand).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 5:
-                            m_LeftWristCollider = animator.GetBoneTransform(HumanBodyBones.LeftIndexDistal).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 4:
-                            m_LeftWristCollider = animator.GetBoneTransform(HumanBodyBones.LeftIndexIntermediate).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 3:
-                            m_LeftWristCollider = animator.GetBoneTransform(HumanBodyBones.LeftIndexProximal).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 2:
-                            m_LeftWristCollider = animator.GetBoneTransform(HumanBodyBones.LeftMiddleDistal).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 1:
-                            m_LeftWristCollider = animator.GetBoneTransform(HumanBodyBones.LeftMiddleIntermediate).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 0:
-                            m_LeftWristCollider = animator.GetBoneTransform(HumanBodyBones.LeftMiddleProximal).GetComponent<DynamicBoneCollider>();
-                            break;
-                    }
-                    leftCount--;
-                }
-
-                int rightCount = 6;
-                while (m_RightWristCollider == null && rightCount >= 0)
-                {
-                    switch (rightCount)
-                    {
-                        case 6:
-                            m_RightWristCollider = animator.GetBoneTransform(HumanBodyBones.RightHand).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 5:
-                            m_RightWristCollider = animator.GetBoneTransform(HumanBodyBones.RightIndexDistal).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 4:
-                            m_RightWristCollider = animator.GetBoneTransform(HumanBodyBones.RightIndexIntermediate).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 3:
-                            m_RightWristCollider = animator.GetBoneTransform(HumanBodyBones.RightIndexProximal).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 2:
-                            m_RightWristCollider = animator.GetBoneTransform(HumanBodyBones.RightMiddleDistal).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 1:
-                            m_RightWristCollider = animator.GetBoneTransform(HumanBodyBones.RightMiddleIntermediate).GetComponent<DynamicBoneCollider>();
-                            break;
-                        case 0:
-                            m_RightWristCollider = animator.GetBoneTransform(HumanBodyBones.RightMiddleProximal).GetComponent<DynamicBoneCollider>();
-                            break;
-                    }
-                    rightCount--;
-                }
 
                 m_IsCapable = m_LeftWristCollider != null && m_RightWristCollider != null;
 
@@ -189,15 +204,32 @@ namespace ImmersiveTouch
                 {
                     m_LeftWristIntPtr = m_LeftWristCollider.Pointer;
                     m_RightWristIntPtr = m_RightWristCollider.Pointer;
+
+                    MelonLogger.Msg($"Listening for collisions on \"{m_LeftWristCollider.gameObject.name}\" & \"{m_RightWristCollider.gameObject.name}\".");
                 }
+                else
+                    MelonLogger.Msg($"This avatar is not capable for Immersive Touch.");
             }
-            catch { NotCapable(); }
+            catch(Exception e) {
+                MelonLogger.Error($"Error when checking capability\n{e}");
+                NotCapable();
+            }
 
             void NotCapable()
             {
                 m_IsCapable = false;
                 return;
             }
+        }
+
+        private enum ColliderPrioritization
+        {
+            Wrist,
+            Thumb,
+            Index,
+            Middle,
+            Ring,
+            Pinky
         }
     }
 }
