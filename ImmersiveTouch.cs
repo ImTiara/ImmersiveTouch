@@ -78,11 +78,8 @@ namespace ImmersiveTouch
                 VRCAvatarManager avatarManager = new VRCAvatarManager(instance);
                 if (avatarManager != null && avatarManager.field_Private_VRCPlayer_0.Equals(VRCPlayer.field_Internal_Static_VRCPlayer_0))
                 {
-                    GameObject avatarObject = Manager.GetLocalAvatarObject();
-                    if (avatarObject == null) return;
-
-                    Animator animator = avatarObject.GetComponent<Animator>();
-                    if (animator == null) return;
+                    Animator animator = Manager.GetLocalAvatarObject()?.GetComponent<Animator>();
+                    if (animator == null || !animator.isHuman) return;
 
                     float scale = Vector3.Distance(animator.GetBoneTransform(HumanBodyBones.LeftHand).position, animator.GetBoneTransform(HumanBodyBones.RightHand).position);
                     m_HapticDistance = scale / 785.0f;
@@ -146,10 +143,7 @@ namespace ImmersiveTouch
 
             try
             {
-                GameObject avatarObject = Manager.GetLocalAvatarObject() ?? null;
-                if (avatarObject == null) NotCapable();
-
-                Animator animator = avatarObject.GetComponent<Animator>();
+                Animator animator = Manager.GetLocalAvatarObject()?.GetComponent<Animator>();
                 if (animator == null || !animator.isHuman) NotCapable();
 
                 HumanBodyBones leftBoneTarget = HumanBodyBones.LeftHand;
@@ -186,14 +180,14 @@ namespace ImmersiveTouch
                 var leftHandColliders = animator.GetDynamicBoneColliders(leftBoneTarget);
                 var rightHandColliders = animator.GetDynamicBoneColliders(rightBoneTarget);
 
-                if (m_ColliderPrioritization != ColliderPrioritization.Wrist && ((leftHandColliders != null && leftHandColliders.Count == 0) || (rightHandColliders != null && rightHandColliders.Count == 0)))
+                if (m_ColliderPrioritization != ColliderPrioritization.Wrist && (leftHandColliders.Count == 0 || rightHandColliders.Count == 0))
                 {
                     leftHandColliders = animator.GetDynamicBoneColliders(HumanBodyBones.LeftHand);
                     rightHandColliders = animator.GetDynamicBoneColliders(HumanBodyBones.RightHand);
                 }
 
-                m_LeftWristCollider = leftHandColliders != null && leftHandColliders.Count != 0 ? leftHandColliders[0] : null;
-                m_RightWristCollider = rightHandColliders != null && rightHandColliders.Count != 0 ? rightHandColliders[0] : null;
+                m_LeftWristCollider = leftHandColliders.Count != 0 ? leftHandColliders[0] : null;
+                m_RightWristCollider = rightHandColliders.Count != 0 ? rightHandColliders[0] : null;
 
                 m_LeftWristIntPtr = IntPtr.Zero;
                 m_RightWristIntPtr = IntPtr.Zero;

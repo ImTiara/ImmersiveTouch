@@ -12,9 +12,9 @@ namespace ImmersiveTouch
     {
         public static VRCPlayer GetLocalVRCPlayer() => VRCPlayer.field_Internal_Static_VRCPlayer_0;
 
-        public static VRCPlayerApi GetLocalVRCPlayerApi() => GetLocalVRCPlayer().prop_VRCPlayerApi_0;
+        public static VRCPlayerApi GetLocalVRCPlayerApi() => GetLocalVRCPlayer()?.prop_VRCPlayerApi_0;
 
-        public static GameObject GetLocalAvatarObject() => GetLocalVRCPlayer().prop_VRCAvatarManager_0.prop_GameObject_0;
+        public static GameObject GetLocalAvatarObject() => GetLocalVRCPlayer()?.prop_VRCAvatarManager_0?.prop_GameObject_0;
 
         public static Il2CppArrayBase<DynamicBoneCollider> GetDynamicBoneColliders(this Animator animator, HumanBodyBones bone) => animator.GetBoneTransform(bone).GetComponentsInChildren<DynamicBoneCollider>();
 
