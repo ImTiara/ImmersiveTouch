@@ -18,6 +18,8 @@ namespace ImmersiveTouch
 
         public static VRCAvatarManager GetLocalAvatarManager() => GetLocalVRCPlayer()?.prop_VRCAvatarManager_0;
 
+        public static Animator GetLocalAvatarAnimator() =>GetLocalAvatarManager()?.field_Private_Animator_0;
+
         public static Il2CppArrayBase<DynamicBoneCollider> GetDynamicBoneColliders(this Animator animator, HumanBodyBones bone) => animator.GetBoneTransform(bone).GetComponentsInChildren<DynamicBoneCollider>();
 
         public static void UIExpansionKit_RegisterSettingAsStringEnum(string categoryName, string settingName, IList<(string SettingsValue, string DisplayName)> possibleValues)
