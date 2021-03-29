@@ -78,7 +78,7 @@ namespace ImmersiveTouch
                 VRCAvatarManager avatarManager = new VRCAvatarManager(instance);
                 if (avatarManager != null && avatarManager.GetInstanceID().Equals(Manager.GetLocalAvatarManager().GetInstanceID()))
                 {
-                    Animator animator = Manager.GetLocalAvatarObject()?.GetComponent<Animator>();
+                    Animator animator = avatarManager.field_Private_Animator_0;
                     if (animator == null || !animator.isHuman) return;
 
                     float scale = Vector3.Distance(animator.GetBoneTransform(HumanBodyBones.LeftHand).position, animator.GetBoneTransform(HumanBodyBones.RightHand).position);
@@ -143,7 +143,7 @@ namespace ImmersiveTouch
 
             try
             {
-                Animator animator = Manager.GetLocalAvatarObject()?.GetComponent<Animator>();
+                Animator animator = Manager.GetLocalAvatarAnimator();
                 if (animator == null || !animator.isHuman) NotCapable();
 
                 HumanBodyBones leftBoneTarget = HumanBodyBones.LeftHand;
