@@ -76,7 +76,7 @@ namespace ImmersiveTouch
             try
             {
                 VRCAvatarManager avatarManager = new VRCAvatarManager(instance);
-                if (avatarManager != null && avatarManager.field_Private_VRCPlayer_0.Equals(VRCPlayer.field_Internal_Static_VRCPlayer_0))
+                if (avatarManager != null && avatarManager.GetInstanceID().Equals(Manager.GetLocalAvatarManager().GetInstanceID()))
                 {
                     Animator animator = Manager.GetLocalAvatarObject()?.GetComponent<Animator>();
                     if (animator == null || !animator.isHuman) return;
