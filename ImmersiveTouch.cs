@@ -39,9 +39,11 @@ namespace ImmersiveTouch
         private static ColliderPrioritization m_ColliderPrioritization = ColliderPrioritization.Wrist;
         private static string colliderPrioritization = "Wrist";
 
-        private static List<DynamicBone> m_LocalLinkedDynamicBones = new List<DynamicBone>();
-
         private static Transform m_CurrentAvatarTransform;
+
+        [ThreadStatic] static IntPtr m_CurrentDBI;
+
+        private static List<IntPtr> m_LocalDynamicBonePointers = new List<IntPtr>();
 
         public override void VRChat_OnUiManagerInit()
         {
@@ -80,9 +82,9 @@ namespace ImmersiveTouch
             TryCapability();
         }
 
-        unsafe public static void OnAvatarChanged(IntPtr instance, IntPtr _, IntPtr __, IntPtr ___)
+        public static unsafe void OnAvatarChanged(IntPtr instance, IntPtr __0, IntPtr __1, IntPtr __2)
         {
-            Hooks.avatarChangedDelegate(instance, _, __, ___);
+            Hooks.avatarChangedDelegate(instance, __0, __1, __2);
 
             try
             {
@@ -106,7 +108,14 @@ namespace ImmersiveTouch
             }
         }
 
-        unsafe public static void OnCollide(IntPtr instance, IntPtr particlePosition, IntPtr particleRadius)
+        public static unsafe void OnUpdateParticles(IntPtr instance, bool __0)
+        {
+            m_CurrentDBI = instance;
+
+            Hooks.updateParticlesDelegate(instance, __0);
+        }
+
+        public static unsafe void OnCollide(IntPtr instance, IntPtr particlePosition, float particleRadius)
         {
             void InvokeCollide() => Hooks.collideDelegate(instance, particlePosition, particleRadius);
 
@@ -128,19 +137,19 @@ namespace ImmersiveTouch
                     SendHaptic(instance);
                 }
             }
-            catch { InvokeCollide(); }
+            catch
+            {
+                InvokeCollide();
+            }
         }
 
         private static void SendHaptic(IntPtr instance)
         {
+            if (m_IgnoreSelf && m_LocalDynamicBonePointers.Contains(m_CurrentDBI)) return;
+
             DynamicBoneCollider dynamicBoneCollider = new DynamicBoneCollider(instance);
 
-            if (m_IgnoreSelf && m_LocalLinkedDynamicBones.FirstOrDefault(x => x.m_Colliders.Contains(dynamicBoneCollider)) != null)
-            {
-                return;
-            }
-
-            Vector3 position = dynamicBoneCollider.transform.position - m_CurrentAvatarTransform.position;
+            Vector3 position = dynamicBoneCollider.transform.position;
 
             if (instance.Equals(m_LeftWristIntPtr) && Vector3.Distance(m_PreviousLeftWristPosition, position) > m_HapticDistance)
             {
@@ -219,16 +228,9 @@ namespace ImmersiveTouch
                     m_LeftWristIntPtr = m_LeftWristCollider.Pointer;
                     m_RightWristIntPtr = m_RightWristCollider.Pointer;
 
-                    m_LocalLinkedDynamicBones.Clear();
-                    foreach (var dynamicBone in Manager.GetLocalAvatarObject().GetDynamicBones())
-                    {
-                        foreach (var dynamicBoneCollider in dynamicBone.m_Colliders)
-                        {
-                            if (dynamicBoneCollider == null || (!dynamicBoneCollider.GetInstanceID().Equals(m_LeftWristCollider.GetInstanceID()) && !dynamicBoneCollider.GetInstanceID().Equals(m_RightWristCollider.GetInstanceID()))) continue;
-                            m_LocalLinkedDynamicBones.Add(dynamicBone);
-                            break;
-                        }
-                    }
+                    m_LocalDynamicBonePointers.Clear();
+                    foreach (var db in m_CurrentAvatarTransform.gameObject.GetDynamicBones())
+                        m_LocalDynamicBonePointers.Add(db.Pointer);
 
                     MelonLogger.Msg($"Listening for collisions on \"{m_LeftWristCollider.gameObject.name}\" and \"{m_RightWristCollider.gameObject.name}\".");
                 }

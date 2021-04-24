@@ -1,38 +1,52 @@
 ﻿using MelonLoader;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using UnhollowerBaseLib;
+using UnityEngine;
 
 namespace ImmersiveTouch
 {
     public class Hooks
     {
-        public delegate void AvatarChangedDelegate(IntPtr instance, IntPtr _, IntPtr __, IntPtr ___);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void AvatarChangedDelegate(IntPtr instance, IntPtr __0, IntPtr __1, IntPtr __2);
         public static AvatarChangedDelegate avatarChangedDelegate;
 
-        public delegate void CollideDelegate(IntPtr instance, IntPtr particlePosition, IntPtr particleRadius);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void UpdateParticlesDelegate(IntPtr __0, bool __1);
+        public static UpdateParticlesDelegate updateParticlesDelegate;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CollideDelegate(IntPtr __0, IntPtr __1, float __2);
         public static CollideDelegate collideDelegate;
 
-        unsafe public static void ApplyPatches()
+        public static unsafe void ApplyPatches()
         {
-            string avatarChangedField = "NativeMethodInfoPtr_Method_Private_Void_ApiAvatar_GameObject_MulticastDelegateNPublicSealedVoGaVRBoUnique_0";
-            string collideField = "NativeMethodInfoPtr_Method_Public_Void_byref_Vector3_Single_0";
+            try
+            {
+                IntPtr original = *(IntPtr*)(IntPtr)UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(VRCAvatarManager).GetMethod(nameof(VRCAvatarManager.Method_Private_Void_ApiAvatar_GameObject_MulticastDelegateNPublicSealedVoGaVRBoUnique_0))).GetValue(null);
+                MelonUtils.NativeHookAttach((IntPtr)(&original), typeof(ImmersiveTouch).GetMethod(nameof(ImmersiveTouch.OnAvatarChanged), BindingFlags.Static | BindingFlags.Public)!.MethodHandle.GetFunctionPointer());
+                avatarChangedDelegate = Marshal.GetDelegateForFunctionPointer<AvatarChangedDelegate>(original);
+            }
+            catch (Exception e) { MelonLogger.Error($"Failed to patch: OnAvatarChanged\n{e}"); }
 
             try
             {
-                var avatarChangedTarget = *(IntPtr*)(IntPtr)typeof(VRCAvatarManager).GetField(avatarChangedField, BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
-                MelonUtils.NativeHookAttach((IntPtr)(&avatarChangedTarget), Marshal.GetFunctionPointerForDelegate(new Action<IntPtr, IntPtr, IntPtr, IntPtr>(ImmersiveTouch.OnAvatarChanged)));
-                avatarChangedDelegate = Marshal.GetDelegateForFunctionPointer<AvatarChangedDelegate>(avatarChangedTarget);
+                IntPtr original = *(IntPtr*)(IntPtr)UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(DynamicBone).GetMethod(nameof(DynamicBone.Method_Private_Void_Boolean_0))).GetValue(null);
+                MelonUtils.NativeHookAttach((IntPtr)(&original), typeof(ImmersiveTouch).GetMethod(nameof(ImmersiveTouch.OnUpdateParticles), BindingFlags.Static | BindingFlags.Public)!.MethodHandle.GetFunctionPointer());
+                updateParticlesDelegate = Marshal.GetDelegateForFunctionPointer<UpdateParticlesDelegate>(original);
             }
-            catch (Exception e) { MelonLogger.Error($"Failed to patch: VRCAvatarManager.{avatarChangedField}\n{e}"); }
+            catch (Exception e) { MelonLogger.Error($"Failed to patch: OnUpdateParticles\n{e}"); }
 
             try
             {
-                var collideTarget = *(IntPtr*)(IntPtr)typeof(DynamicBoneCollider).GetField(collideField, BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
-                MelonUtils.NativeHookAttach((IntPtr)(&collideTarget), Marshal.GetFunctionPointerForDelegate(new Action<IntPtr, IntPtr, IntPtr>(ImmersiveTouch.OnCollide)));
-                collideDelegate = Marshal.GetDelegateForFunctionPointer<CollideDelegate>(collideTarget);
+                IntPtr original = *(IntPtr*)(IntPtr)UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(DynamicBoneCollider).GetMethod(nameof(DynamicBoneCollider.Method_Public_Void_byref_Vector3_Single_0))).GetValue(null);
+                MelonUtils.NativeHookAttach((IntPtr)(&original), typeof(ImmersiveTouch).GetMethod(nameof(ImmersiveTouch.OnCollide), BindingFlags.Static | BindingFlags.Public)!.MethodHandle.GetFunctionPointer());
+                collideDelegate = Marshal.GetDelegateForFunctionPointer<CollideDelegate>(original);
             }
-            catch (Exception e) { MelonLogger.Error($"Failed to patch: DynamicBoneCollider.{collideField}\n{e}"); }
+            catch (Exception e) { MelonLogger.Error($"Failed to patch: OnCollide\n{e}"); }
         }
     }
 }
