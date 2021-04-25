@@ -14,7 +14,7 @@ namespace ImmersiveTouch
         public const string Name = "ImmersiveTouch";
         public const string Author = "ImTiara";
         public const string Company = null;
-        public const string Version = "1.0.1";
+        public const string Version = "1.0.2";
         public const string DownloadLink = "https://github.com/ImTiara/ImmersiveTouch/releases";
     }
 
@@ -30,20 +30,17 @@ namespace ImmersiveTouch
         private static Vector3 m_PreviousLeftWristPosition;
         private static Vector3 m_PreviousRightWristPosition;
 
-        private static DynamicBoneCollider m_LeftWristCollider;
-        private static DynamicBoneCollider m_RightWristCollider;
-
         private static IntPtr m_LeftWristIntPtr;
         private static IntPtr m_RightWristIntPtr;
+
+        [ThreadStatic] static IntPtr m_CurrentDBI;
+
+        private static readonly List<IntPtr> m_LocalDynamicBonePointers = new List<IntPtr>();
 
         private static ColliderPrioritization m_ColliderPrioritization = ColliderPrioritization.Wrist;
         private static string colliderPrioritization = "Wrist";
 
-        private static Transform m_CurrentAvatarTransform;
-
-        [ThreadStatic] static IntPtr m_CurrentDBI;
-
-        private static List<IntPtr> m_LocalDynamicBonePointers = new List<IntPtr>();
+        private static GameObject m_CurrentAvatarObject;
 
         public override void VRChat_OnUiManagerInit()
         {
@@ -97,7 +94,7 @@ namespace ImmersiveTouch
                     float scale = Vector3.Distance(animator.GetBoneTransform(HumanBodyBones.LeftHand).position, animator.GetBoneTransform(HumanBodyBones.RightHand).position);
                     m_HapticDistance = scale / 785.0f;
 
-                    m_CurrentAvatarTransform = avatarManager.prop_GameObject_0.transform;
+                    m_CurrentAvatarObject = avatarManager.prop_GameObject_0;
 
                     TryCapability();
                 }
@@ -108,6 +105,7 @@ namespace ImmersiveTouch
             }
         }
 
+        // Credits to knah for this idea
         public static unsafe void OnUpdateParticles(IntPtr instance, bool __0)
         {
             m_CurrentDBI = instance;
@@ -215,35 +213,30 @@ namespace ImmersiveTouch
                     rightHandColliders = animator.GetDynamicBoneColliders(HumanBodyBones.RightHand);
                 }
 
-                m_LeftWristCollider = leftHandColliders.Count != 0 ? leftHandColliders[0] : null;
-                m_RightWristCollider = rightHandColliders.Count != 0 ? rightHandColliders[0] : null;
+                m_LeftWristIntPtr = leftHandColliders.Count != 0 ? leftHandColliders[0].Pointer : IntPtr.Zero;
+                m_RightWristIntPtr = rightHandColliders.Count != 0 ? rightHandColliders[0].Pointer : IntPtr.Zero;
 
-                m_LeftWristIntPtr = IntPtr.Zero;
-                m_RightWristIntPtr = IntPtr.Zero;
-
-                m_IsCapable = m_LeftWristCollider != null && m_RightWristCollider != null;
+                m_IsCapable = m_LeftWristIntPtr != IntPtr.Zero && m_RightWristIntPtr != IntPtr.Zero;
 
                 if (m_IsCapable)
                 {
-                    m_LeftWristIntPtr = m_LeftWristCollider.Pointer;
-                    m_RightWristIntPtr = m_RightWristCollider.Pointer;
-
                     m_LocalDynamicBonePointers.Clear();
-                    foreach (var db in m_CurrentAvatarTransform.gameObject.GetDynamicBones())
+                    foreach (var db in m_CurrentAvatarObject.GetDynamicBones())
                         m_LocalDynamicBonePointers.Add(db.Pointer);
 
-                    MelonLogger.Msg($"Listening for collisions on \"{m_LeftWristCollider.gameObject.name}\" and \"{m_RightWristCollider.gameObject.name}\".");
+                    MelonLogger.Msg($"Listening for collisions on \"{leftHandColliders[0].gameObject.name}\" and \"{rightHandColliders[0].gameObject.name}\".");
                 }
                 else
-                    MelonLogger.Msg($"This avatar is not capable for Immersive Touch.");
+                    NotCapable();
             }
             catch(Exception e) {
+                m_IsCapable = false;
                 MelonLogger.Error($"Error when checking capability\n{e}");
-                NotCapable();
             }
 
-            void NotCapable()
+            static void NotCapable()
             {
+                MelonLogger.Msg("This avatar is not capable for Immersive Touch.");
                 m_IsCapable = false;
                 return;
             }

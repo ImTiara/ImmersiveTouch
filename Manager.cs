@@ -22,7 +22,7 @@ namespace ImmersiveTouch
 
         public static Il2CppArrayBase<DynamicBoneCollider> GetDynamicBoneColliders(this Animator animator, HumanBodyBones bone) => animator.GetBoneTransform(bone).GetComponentsInChildren<DynamicBoneCollider>();
         
-        public static List<DynamicBone> GetDynamicBones(this GameObject gameObject) => gameObject.GetComponentsInChildren<DynamicBone>().ToList();
+        public static Il2CppArrayBase<DynamicBone> GetDynamicBones(this GameObject gameObject) => gameObject.GetComponentsInChildren<DynamicBone>();
 
         public static void UIExpansionKit_RegisterSettingAsStringEnum(string categoryName, string settingName, IList<(string SettingsValue, string DisplayName)> possibleValues)
         {
