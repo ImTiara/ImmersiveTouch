@@ -14,7 +14,7 @@ namespace ImmersiveTouch
         public const string Name = "ImmersiveTouch";
         public const string Author = "ImTiara";
         public const string Company = null;
-        public const string Version = "1.0.2";
+        public const string Version = "1.0.3";
         public const string DownloadLink = "https://github.com/ImTiara/ImmersiveTouch/releases";
     }
 
@@ -119,7 +119,7 @@ namespace ImmersiveTouch
 
             try
             {
-                if (!m_Enable || !m_IsCapable || (!instance.Equals(m_LeftWristIntPtr) && !instance.Equals(m_RightWristIntPtr)))
+                if (!m_IsCapable || (!instance.Equals(m_LeftWristIntPtr) && !instance.Equals(m_RightWristIntPtr)))
                 {
                     InvokeCollide();
                     return;
@@ -166,7 +166,11 @@ namespace ImmersiveTouch
 
         private static void TryCapability()
         {
-            if (!m_Enable || Manager.GetLocalVRCPlayer() == null) return;
+            if (!m_Enable || Manager.GetLocalVRCPlayer() == null)
+            {
+                m_IsCapable = false;
+                return;
+            }
 
             try
             {
