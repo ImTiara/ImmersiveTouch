@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -42,7 +43,10 @@ namespace ImmersiveTouch
 
         private static GameObject m_CurrentAvatarObject;
 
-        public override void VRChat_OnUiManagerInit()
+        public override void OnApplicationStart()
+            => MelonCoroutines.Start(UiManagerInitializer());
+
+        public void OnUiManagerInit()
         {
             Manager.RegisterUIExpansionKit();
 
@@ -244,6 +248,12 @@ namespace ImmersiveTouch
                 m_IsCapable = false;
                 return;
             }
+        }
+
+        public IEnumerator UiManagerInitializer()
+        {
+            while (VRCUiManager.prop_VRCUiManager_0 == null) yield return null;
+            OnUiManagerInit();
         }
 
         private enum ColliderPrioritization
