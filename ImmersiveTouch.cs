@@ -52,7 +52,7 @@ namespace ImmersiveTouch
             MelonPreferences.CreateEntry(GetType().Name, "Enable", true, "Enable Immersive Touch");
             MelonPreferences.CreateEntry(GetType().Name, "HapticAmplitude", 100.0f, "Haptic Amplitude (%)");
             MelonPreferences.CreateEntry(GetType().Name, "ColliderPrioritization", colliderPrioritization, "Collider Prioritization");
-            MelonPreferences.CreateEntry(GetType().Name, "IgnoreSelf", true, "Ignore Self");
+            MelonPreferences.CreateEntry(GetType().Name, "IgnoreSelf", true, "Ignore Self Collisions");
 
             OnPreferencesSaved();
 
