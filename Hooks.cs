@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using UnhollowerBaseLib;
@@ -24,7 +25,10 @@ namespace ImmersiveTouch
         {
             try
             {
-                IntPtr original = *(IntPtr*)(IntPtr)UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(VRCAvatarManager).GetMethod(nameof(VRCAvatarManager.Method_Private_Void_ApiAvatar_GameObject_MulticastDelegateNPublicSealedVoGaVRBoUnique_0))).GetValue(null);
+                // PDM's are scary:(
+                MethodInfo avatarChangedMethod = typeof(VRCAvatarManager).GetMethods().FirstOrDefault(method => method.Name.StartsWith("Method_Private_Void_ApiAvatar_GameObject_Action_1_Boolean_"));
+
+                IntPtr original = *(IntPtr*)(IntPtr)UnhollowerUtils.GetIl2CppMethodInfoPointerFieldForGeneratedMethod(avatarChangedMethod).GetValue(null);
                 MelonUtils.NativeHookAttach((IntPtr)(&original), typeof(ImmersiveTouch).GetMethod(nameof(ImmersiveTouch.OnAvatarChanged), BindingFlags.Static | BindingFlags.Public)!.MethodHandle.GetFunctionPointer());
                 avatarChangedDelegate = Marshal.GetDelegateForFunctionPointer<AvatarChangedDelegate>(original);
             }
