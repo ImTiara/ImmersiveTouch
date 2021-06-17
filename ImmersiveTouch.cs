@@ -13,7 +13,7 @@ namespace ImmersiveTouch
         public const string Name = "ImmersiveTouch";
         public const string Author = "ImTiara";
         public const string Company = null;
-        public const string Version = "1.0.3";
+        public const string Version = "1.0.4";
         public const string DownloadLink = "https://github.com/ImTiara/ImmersiveTouch/releases";
     }
 
