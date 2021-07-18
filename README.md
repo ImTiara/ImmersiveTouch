@@ -1,3 +1,7 @@
+# Note
+This repository has been deprecated and is replaced with my new mods repository:
+https://github.com/ImTiara/VRCMods
+
 # ImmersiveTouch
 With this mod you will receive vibrations in your VR controllers when hand colliders interacts with dynamic bones.
 This mod should work with other mods that allows you to interact with peoples dynamic bones such as "MultiplayerDynamicBones".
